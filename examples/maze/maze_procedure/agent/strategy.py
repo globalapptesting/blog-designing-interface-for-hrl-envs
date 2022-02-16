@@ -11,14 +11,14 @@ from maze.maze import Direction
 from maze_procedure.action import GoDirection
 from maze_procedure.env_state import MazeEnvState
 
-from hrl.action import Natural
+from hrl.action import NoSwitchAction
 from hrl.agent import Agent, AgentConfig
 from hrl.exceptions import UnknownAgentAction
 
 StrategyAgentState = MazeEnvState
 StrategyAgentAction = GoDirection
 StrategyAgentRawAction = int
-StrategySwitchAgentAction = Natural
+StrategySwitchAgentAction = NoSwitchAction
 
 
 class StrategyAgentObs(TypedDict):

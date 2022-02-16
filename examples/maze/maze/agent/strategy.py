@@ -11,14 +11,14 @@ from maze.env_state import MazeEnvState
 from maze.exceptions import DirectionNonWalkable
 from maze.maze import Direction
 
-from hrl.action import Natural
+from hrl.action import NoSwitchAction
 from hrl.agent import Agent, AgentConfig
 from hrl.exceptions import UnknownAgentAction
 
 StrategyAgentState = MazeEnvState
 StrategyAgentAction = SetDirection
 StrategyAgentRawAction = int
-StrategySwitchAgentAction = Natural
+StrategySwitchAgentAction = NoSwitchAction
 
 
 class StrategyAgentObs(TypedDict):

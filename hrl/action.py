@@ -13,7 +13,7 @@ class SwitchAgent(Action):
 
 
 @dataclass
-class Natural(SwitchAgent):
+class NoSwitchAction(SwitchAgent):
     pass
 
 
