@@ -1,13 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Any, Dict, Optional, Protocol, TypeVar
+from typing import Any, Dict, Generic, Optional, Protocol, TypeVar
 
 from gym import Space  # type: ignore
 
 from hrl.action import Action, SwitchAgent
-from hrl.env_types import (
-    EnvState,
-    EnvConfig,
-)
+from hrl.env_types import EnvConfig, EnvState
 
 AgentName = str
 AgentConfig = TypeVar("AgentConfig")
@@ -25,6 +22,7 @@ AgentState = TypeVar("AgentState")
 AgentObs = TypeVar("AgentObs")
 AgentRawAction = TypeVar("AgentRawAction")
 AgentAction = TypeVar("AgentAction", bound=Action)
+SwitchAgentAction = TypeVar("SwitchAgentAction", bound=SwitchAgent)
 
 
 class Agent(
@@ -37,6 +35,7 @@ class Agent(
         AgentObs,
         AgentRawAction,
         AgentAction,
+        SwitchAgentAction,
     ],
 ):
     NAME: AgentName
@@ -114,15 +113,15 @@ class Agent(
         pass
 
     def on_takes_control(
-        self, state: AgentState, action: Optional[SwitchAgent]
-    ) -> None:
+        self, state: EnvState, action: Optional[SwitchAgentAction]
+    ) -> EnvState:
         """
         Called when the agent takes control. The `state` represents the current
-        agent state and the `action` represents the cause of the agent change,
+        environment state and the `action` represents the cause of the agent change,
         in case another agent initiated the change. This might be used to set
         a goal for the agent.
         """
-        pass
+        return state
 
     def on_step(self, action: AgentAction) -> None:
         """

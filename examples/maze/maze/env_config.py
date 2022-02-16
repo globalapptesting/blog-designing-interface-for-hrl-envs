@@ -1,6 +1,6 @@
 from typing import TypedDict
 
-from maze.maze import Map, DEFAULT_MAP
+from maze.maze import DEFAULT_MAP, Map
 
 
 class MazeEnvConfig(TypedDict, total=False):

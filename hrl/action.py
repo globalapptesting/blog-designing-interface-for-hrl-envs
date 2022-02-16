@@ -10,3 +10,13 @@ class Action(ABC):
 @dataclass
 class SwitchAgent(Action):
     pass
+
+
+@dataclass
+class Natural(SwitchAgent):
+    pass
+
+
+@dataclass
+class ProcedureRequest(Action):
+    pass

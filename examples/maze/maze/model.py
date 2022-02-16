@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 import torch
@@ -18,7 +18,7 @@ class MazeModel(TorchModelV2, nn.Module):
         num_outputs,
         model_config,
         name,
-        **custom_model_config
+        **custom_model_config,
     ):
         nn.Module.__init__(self)
         TorchModelV2.__init__(

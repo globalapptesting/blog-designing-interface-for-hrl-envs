@@ -5,18 +5,18 @@ import numpy as np
 import numpy.typing as npt
 from gym import Space  # type: ignore
 from gym.spaces import Box, Dict, Discrete, MultiBinary  # type: ignore
-from maze.action import SetDirection
 from maze.env_config import MazeEnvConfig
-from maze.env_state import MazeEnvState
 from maze.exceptions import DirectionNonWalkable
 from maze.maze import Direction
+from maze_procedure.action import GoDirection
+from maze_procedure.env_state import MazeEnvState
 
 from hrl.action import Natural
 from hrl.agent import Agent, AgentConfig
 from hrl.exceptions import UnknownAgentAction
 
 StrategyAgentState = MazeEnvState
-StrategyAgentAction = SetDirection
+StrategyAgentAction = GoDirection
 StrategyAgentRawAction = int
 StrategySwitchAgentAction = Natural
 
@@ -103,7 +103,7 @@ class StrategyAgent(
             raise UnknownAgentAction(self, action)
         if not state.maze.is_direction_walkable(state.position, direction):
             raise DirectionNonWalkable(direction)
-        return SetDirection(direction)
+        return GoDirection(direction)
 
     def has_done(self, state: StrategyAgentState) -> bool:
         return any(

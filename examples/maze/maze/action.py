@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
-from hrl.action import SwitchAgent, Action
 from maze.maze import Direction
+
+from hrl.action import Action, SwitchAgent
 
 
 @dataclass

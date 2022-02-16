@@ -57,3 +57,7 @@ set `log_to_wandb` to `True` and update your credentials.
 Below you can see training performance of the strategy agent.
 
 ![plot](./plot.png)
+
+And for the procedure setup (note 3x fewer steps than in the previous experiment):
+
+![plot with procedure](./plot_procedure.png)

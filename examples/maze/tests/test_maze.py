@@ -1,6 +1,5 @@
 import pytest
-
-from maze.maze import Maze, Position, Direction
+from maze.maze import Direction, Maze, Position
 
 
 @pytest.fixture

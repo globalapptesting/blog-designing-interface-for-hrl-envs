@@ -1,23 +1,24 @@
 from collections import OrderedDict
-from typing import TypedDict, Union, Optional
+from dataclasses import replace
+from typing import Optional, TypedDict, Union
 
 import numpy as np
 import numpy.typing as npt
 from gym import Space  # type: ignore
-from gym.spaces import Dict, Box, Discrete, MultiBinary  # type: ignore
-
-from hrl.action import SwitchAgent
-from hrl.agent import Agent, AgentObs
-from hrl.exceptions import UnknownAgentAction
-from maze.action import MoveForward, MoveBackward
+from gym.spaces import Box, Dict, Discrete, MultiBinary  # type: ignore
+from maze.action import MoveBackward, MoveForward, SetDirection
 from maze.env_config import MazeEnvConfig
 from maze.env_state import MazeEnvState
 from maze.exceptions import DirectionNonWalkable
 from maze.maze import Direction
 
+from hrl.agent import Agent, AgentObs
+from hrl.exceptions import UnknownAgentAction
+
 MotionAgentState = MazeEnvState
 MotionAgentAction = Union[MoveForward, MoveBackward]
 MotionAgentRawAction = int
+MotionAgentSwitchAgentAction = SetDirection
 
 
 class MotionAgentObs(TypedDict):
@@ -41,6 +42,7 @@ class MotionAgent(
         MotionAgentObs,
         MotionAgentRawAction,
         MotionAgentAction,
+        MotionAgentSwitchAgentAction,
     ]
 ):
     NAME = "motion"
@@ -133,9 +135,12 @@ class MotionAgent(
         self._elapsed_steps = 0
 
     def on_takes_control(
-        self, state: MotionAgentState, action: Optional[SwitchAgent]
-    ) -> None:
+        self, state: MazeEnvState, action: Optional[SetDirection]
+    ) -> MazeEnvState:
+        assert isinstance(action, SetDirection)
         self._elapsed_steps = 0
+        new_state = replace(state, direction=action.direction)
+        return new_state
 
     def on_step(self, action: MotionAgentAction) -> None:
         self._elapsed_steps += 1

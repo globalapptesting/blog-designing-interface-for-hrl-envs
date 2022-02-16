@@ -1,17 +1,18 @@
 import logging
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import cached_property
-from typing import Tuple, Dict, Optional, Type, List, Generic, Any
+from typing import Any, Dict, Generic, List, Optional, Tuple, Type
 
 from gym import Space  # type: ignore
 from ray.rllib import MultiAgentEnv
 from ray.rllib.utils.typing import MultiAgentDict
 
-from hrl.action import SwitchAgent, Action
-from hrl.agent import Agent, AgentTrigger, AgentName
-from hrl.env_types import EnvState, EnvConfig
-from hrl.exceptions import MissingNextAgent
+from hrl.action import Action, ProcedureRequest, SwitchAgent
+from hrl.agent import Agent, AgentName, AgentTrigger
+from hrl.env_types import EnvConfig, EnvState
+from hrl.exceptions import MissingNextAgent, MissingProcedure
+from hrl.procedure import Procedure, ProcedureName
 
 LOG = logging.getLogger(__name__)
 
@@ -38,8 +39,14 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
     @abstractmethod
     def agents(
         self,
-    ) -> Dict[AgentName, Type[Agent[EnvConfig, EnvState, Any, Any, Any, Any, Action]]]:
+    ) -> Dict[
+        AgentName, Type[Agent[EnvConfig, EnvState, Any, Any, Any, Any, Action, Any]]
+    ]:
         pass
+
+    @cached_property
+    def procedures(self) -> Dict[ProcedureName, Procedure[EnvState, ProcedureRequest]]:
+        return {}
 
     @property
     @abstractmethod
@@ -69,6 +76,11 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
             ...     name == HIGH_LEVEL_AGENT and action == GO_RIGHT
             ... ), LOW_LEVEL_AGENT)]
         """
+        return []
+
+    @cached_property
+    def procedures_on_action(self) -> List[Tuple[AgentTrigger[Action], ProcedureName]]:
+        """ """
         return []
 
     @abstractmethod
@@ -104,8 +116,7 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
             agent.on_reset()
 
         state = self._prev_state = self.initial_state()
-
-        self._switch_agent(self.initial_agent, state)
+        state = self._switch_agent(self.initial_agent, state)
 
         obs = {
             self._current_agent_id: self._current_agent.encode_observation(
@@ -135,15 +146,14 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
         )
         self._current_agent.on_step(action)
 
-        state = self.env_step(self._prev_state, action)
-
         if isinstance(action, SwitchAgent):
             next_agent = self._get_next_agent(action)
-            assert next_agent, (
-                f"The agent `{self._current_agent_name}` returned a hierarchical "
-                f"action `{action}`, but there is no trigger specifying the next agent."
-            )
-            self._switch_agent(next_agent, state, action)
+            state = self._switch_agent(next_agent, self._prev_state, action)
+        elif isinstance(action, ProcedureRequest):
+            procedure = self._get_procedure(action)
+            state = procedure.execute(self._prev_state, action)
+        else:
+            state = self.env_step(self._prev_state, action)
 
         result: Tuple[
             MultiAgentDict, MultiAgentDict, MultiAgentDict, MultiAgentDict
@@ -160,7 +170,7 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
             ]
             if next_agent is not None:
                 self._agent_counter[self._current_agent_name] += 1  # type: ignore
-                self._switch_agent(next_agent, state)
+                state = self._switch_agent(next_agent, state)
                 self._populate_result_with_agent_output(result, state, action)
 
         done["__all__"] = all(done.values())
@@ -169,7 +179,9 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
         return result
 
     @property
-    def _current_agent(self) -> Agent[EnvConfig, EnvState, Any, Any, Any, Any, Action]:
+    def _current_agent(
+        self,
+    ) -> Agent[EnvConfig, EnvState, Any, Any, Any, Any, Action, Any]:
         return self._agents[self._current_agent_name]  # type: ignore
 
     def _validate_transitions_on_done(self) -> None:
@@ -178,7 +190,7 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
 
     def _init_agents(
         self,
-    ) -> Dict[AgentName, Agent[EnvConfig, EnvState, Any, Any, Any, Any, Action]]:
+    ) -> Dict[AgentName, Agent[EnvConfig, EnvState, Any, Any, Any, Any, Action, Any]]:
         agents = {}
         for agent_name, agent_cls in self.agents.items():
             agent_config = self._agent_configs[agent_name]
@@ -190,7 +202,7 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
         new_agent: AgentName,
         state: EnvState,
         action: Optional[SwitchAgent] = None,
-    ) -> None:
+    ) -> EnvState:
         LOG.debug(
             f"Switching the agent from `{self._current_agent_name}` to `{new_agent}`."
         )
@@ -201,14 +213,20 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
             pass
         self._current_agent_name = new_agent
         self._current_agent_id = self._agent_id(new_agent)
-        agent_state = self._current_agent.translate_state(state)
-        self._current_agent.on_takes_control(agent_state, action)
+        new_state = self._current_agent.on_takes_control(state, action)
+        return new_state
 
-    def _get_next_agent(self, action: SwitchAgent) -> Optional[AgentName]:
+    def _get_next_agent(self, action: SwitchAgent) -> AgentName:
         for trigger, agent in self.transitions_on_action:
             if trigger(self._current_agent_name, action):  # type: ignore
                 return agent
         raise MissingNextAgent(self._current_agent, action)
+
+    def _get_procedure(self, action: ProcedureRequest) -> Procedure[EnvState, Any]:
+        for trigger, procedure in self.procedures_on_action:
+            if trigger(self._current_agent_name, action):  # type: ignore
+                return self.procedures[procedure]
+        raise MissingProcedure(self._current_agent, action)
 
     def _agent_id(self, name: AgentName) -> AgentId:
         return f"{name}_{self._agent_counter[name]}"

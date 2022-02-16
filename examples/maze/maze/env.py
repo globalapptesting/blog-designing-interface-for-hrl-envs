@@ -1,17 +1,18 @@
 from dataclasses import replace
 from functools import cached_property
-from typing import Dict, Tuple, Type, Optional, List, Any
+from typing import Any, Dict, List, Optional, Tuple, Type
 
-from hrl.action import Action
-from hrl.agent import Agent, AgentTrigger, AgentName, AgentConfig
-from hrl.env import HierarchicalEnv
-from hrl.exceptions import UnknownAction
-from maze.action import MoveForward, MoveBackward, SetDirection
+from maze.action import MoveBackward, MoveForward, SetDirection
 from maze.agent.motion import MotionAgent
 from maze.agent.strategy import StrategyAgent
 from maze.env_config import MazeEnvConfig
 from maze.env_state import MazeEnvState
-from maze.maze import Maze, Direction
+from maze.maze import Direction, Maze
+
+from hrl.action import Action
+from hrl.agent import Agent, AgentConfig, AgentName, AgentTrigger
+from hrl.env import HierarchicalEnv
+from hrl.exceptions import UnknownAction
 
 
 class MazeEnv(HierarchicalEnv[MazeEnvConfig, MazeEnvState]):
@@ -26,7 +27,8 @@ class MazeEnv(HierarchicalEnv[MazeEnvConfig, MazeEnvState]):
     def agents(
         self,
     ) -> Dict[
-        AgentName, Type[Agent[MazeEnvConfig, MazeEnvState, Any, Any, Any, Any, Any]]
+        AgentName,
+        Type[Agent[MazeEnvConfig, MazeEnvState, Any, Any, Any, Any, Any, Any]],
     ]:
         return {StrategyAgent.NAME: StrategyAgent, MotionAgent.NAME: MotionAgent}
 
@@ -56,9 +58,7 @@ class MazeEnv(HierarchicalEnv[MazeEnvConfig, MazeEnvState]):
 
     def env_step(self, state: MazeEnvState, action: Action) -> MazeEnvState:
         # TODO TWr This could be nicely refactored with structural pattern matching.
-        if isinstance(action, SetDirection):
-            state = replace(state, direction=action.direction)
-        elif isinstance(action, MoveForward):
+        if isinstance(action, MoveForward):
             new_position = state.maze.next_position(state.position, state.direction)
             state = replace(state, position=new_position)
         elif isinstance(action, MoveBackward):

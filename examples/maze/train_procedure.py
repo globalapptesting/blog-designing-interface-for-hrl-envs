@@ -1,10 +1,9 @@
 import ray
-from maze.agent.motion import MotionAgent, MotionAgentConfig
 from maze.agent.strategy import StrategyAgent, StrategyAgentConfig
-from maze.env import MazeEnv
 from maze.env_config import DEFAULTS
 from maze.maze import Direction
 from maze.model import MazeModel
+from maze_procedure.env import MazeProcedureEnv
 from ray import tune
 from ray.rllib.models import ModelCatalog
 from ray.tune import register_env
@@ -13,8 +12,8 @@ from ray.tune.integration.wandb import WandbLoggerCallback
 
 def register_envs():
     register_env(
-        "MazeEnv",
-        lambda env_config: MazeEnv(env_config["common"], env_config["agents"]),
+        "MazeProcedureEnv",
+        lambda env_config: MazeProcedureEnv(env_config["common"], env_config["agents"]),
     )
 
 
@@ -37,26 +36,11 @@ def train(log_to_wandb: bool):
         },
     }
 
-    motion_agent_config: MotionAgentConfig = MotionAgent.DEFAULTS | {
-        "max_steps": 20,
-    }
-
-    motion_agent_model_config = {
-        "custom_model": "MazeModel",
-        "custom_model_config": {
-            "map": tune.sample_from(lambda spec: spec.config.env_config.common.map),
-            "num_actions": 2,
-        },
-    }
-
     config = {
-        "env": "MazeEnv",
+        "env": "MazeProcedureEnv",
         "env_config": {
             "common": common_config,
-            "agents": {
-                StrategyAgent.NAME: strategy_agent_config,
-                MotionAgent.NAME: motion_agent_config,
-            },
+            "agents": {StrategyAgent.NAME: strategy_agent_config},
         },
         "multiagent": {
             "policies": {
@@ -68,21 +52,12 @@ def train(log_to_wandb: bool):
                     StrategyAgent.action_space(strategy_agent_config, common_config),
                     {
                         "model": strategy_agent_model_config,
-                        "entropy_coeff": 0.5,
-                    },
-                ],
-                MotionAgent.NAME: [
-                    None,
-                    MotionAgent.observation_space(motion_agent_config, common_config),
-                    MotionAgent.action_space(motion_agent_config, common_config),
-                    {
-                        "model": motion_agent_model_config,
-                        "entropy_coeff": 0.01,
+                        "entropy_coeff": 0.1,
                     },
                 ],
             },
             "policy_mapping_fn": lambda agent_id: agent_id.split("_")[0],
-            "policies_to_train": [StrategyAgent.NAME, MotionAgent.NAME],
+            "policies_to_train": [StrategyAgent.NAME],
             "count_steps_by": "agent_steps",
         },
         "num_workers": 10,
@@ -121,7 +96,7 @@ def main():
     ray.init()
     register_envs()
     register_models()
-    train(log_to_wandb=False)
+    train(log_to_wandb=True)
 
 
 if __name__ == "__main__":

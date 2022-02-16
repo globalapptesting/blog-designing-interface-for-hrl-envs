@@ -1,15 +1,15 @@
-from typing import Optional, List, Any
+from typing import Any, List, Optional
 
 import pytest
-from ray.rllib.utils.typing import MultiAgentDict
-
-from hrl.env import HierarchicalEnv
 from maze.agent.motion import MotionAgent
 from maze.agent.strategy import StrategyAgent
 from maze.env import MazeEnv
 from maze.env_config import DEFAULTS
 from maze.exceptions import DirectionNonWalkable
 from maze.maze import Direction
+from ray.rllib.utils.typing import MultiAgentDict
+
+from hrl.env import HierarchicalEnv
 
 
 @pytest.fixture

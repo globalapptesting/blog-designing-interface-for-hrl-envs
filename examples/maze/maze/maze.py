@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Tuple, Optional, List, Set
+from typing import List, Optional, Set, Tuple
 
 import numpy as np
 import numpy.typing as npt
