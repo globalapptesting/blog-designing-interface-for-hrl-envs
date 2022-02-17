@@ -1,8 +1,9 @@
 [tool.poetry]
 name = "hrl"
 version = "0.1.0"
-description = ""
-authors = ["Global App Testing"]
+description = "A set of interfaces to help designing and developing hierarchical reinforcement learning environments."
+authors = ["Global App Testing <developers@globalapptesting.com>"]
+repository = "https://github.com/GlobalAppTesting/blog-designing-interface-for-hrl-envs"
 
 [tool.poetry.dependencies]
 python = "^3.9"
