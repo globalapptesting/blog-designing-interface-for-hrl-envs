@@ -91,6 +91,9 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
     def env_step(self, state: EnvState, action: Action) -> EnvState:
         pass
 
+    def common_info(self, state: EnvState) -> Dict[str, Any]:
+        return {}
+
     @property
     def observation_space(self) -> Space:
         try:
@@ -253,3 +256,4 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
         info[self._current_agent_id] = self._current_agent.info(
             agent_prev_state, action, agent_state
         )
+        info["__common__"] = self.common_info(state)

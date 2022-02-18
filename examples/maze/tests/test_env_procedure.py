@@ -121,7 +121,8 @@ def assert_agents(
 
     if info is not None:
         assert isinstance(info, dict)
-        assert len(info) == num_agents
+        assert len(info) == num_agents + 1
         for agent in expected:
             assert agent in info
+            assert "__common__" in info
             assert isinstance(info[agent], dict)
