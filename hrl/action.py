@@ -2,21 +2,21 @@ from abc import ABC
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Action(ABC):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class SwitchAgent(Action):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class NoSwitchAction(SwitchAgent):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class ProcedureRequest(Action):
     pass
