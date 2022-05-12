@@ -5,6 +5,6 @@ from maze.maze import Direction
 from hrl.action import ProcedureRequest
 
 
-@dataclass
+@dataclass(frozen=True)
 class GoDirection(ProcedureRequest):
     direction: Direction

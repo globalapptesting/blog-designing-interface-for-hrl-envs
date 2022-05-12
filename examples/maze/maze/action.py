@@ -5,16 +5,16 @@ from maze.maze import Direction
 from hrl.action import Action, SwitchAgent
 
 
-@dataclass
+@dataclass(frozen=True)
 class SetDirection(SwitchAgent):
     direction: Direction
 
 
-@dataclass
+@dataclass(frozen=True)
 class MoveForward(Action):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class MoveBackward(Action):
     pass
