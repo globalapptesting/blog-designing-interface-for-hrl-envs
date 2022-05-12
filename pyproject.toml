@@ -10,6 +10,7 @@ python = "^3.9"
 ray = {extras = ["rllib"], version = "^1.9.0"}
 torch = {version = "^1.10.0", optional = true}
 gym = "^0.21.0"
+dataclasses-json = "^0.5.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
