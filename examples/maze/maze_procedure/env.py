@@ -15,7 +15,7 @@ from hrl.exceptions import UnknownAction
 from hrl.procedure import Procedure, ProcedureName
 
 
-class MazeProcedureEnv(HierarchicalEnv[MazeEnvConfig, MazeEnvState]):
+class MazeProcedureEnv(HierarchicalEnv[MazeEnvConfig, MazeEnvState, dict[str, Any]]):
     def __init__(
         self, config: MazeEnvConfig, agent_configs: Dict[AgentName, AgentConfig]
     ):

@@ -177,7 +177,7 @@ def test_maze_env_on_successful_path(env: MazeEnv) -> None:
 
 def assert_agent(
     expected: str,
-    env: HierarchicalEnv[Any, Any],
+    env: HierarchicalEnv[Any, Any, Any],
     obs: MultiAgentDict,
     reward: Optional[MultiAgentDict] = None,
     done: Optional[MultiAgentDict] = None,
@@ -188,7 +188,7 @@ def assert_agent(
 
 def assert_agents(
     expected: List[str],
-    env: HierarchicalEnv[Any, Any],
+    env: HierarchicalEnv[Any, Any, Any],
     obs: MultiAgentDict,
     reward: Optional[MultiAgentDict] = None,
     done: Optional[MultiAgentDict] = None,

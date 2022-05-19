@@ -10,7 +10,7 @@ from ray.rllib.utils.typing import MultiAgentDict
 
 from hrl.action import Action, ProcedureRequest, SwitchAgent
 from hrl.agent import Agent, AgentName, AgentTrigger
-from hrl.env_types import EnvConfig, EnvState
+from hrl.env_types import EnvConfig, EnvState, EnvCommonInfo
 from hrl.exceptions import MissingNextAgent, MissingProcedure
 from hrl.procedure import Procedure, ProcedureName
 
@@ -19,7 +19,7 @@ LOG = logging.getLogger(__name__)
 AgentId = str
 
 
-class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
+class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState, EnvCommonInfo]):
     def __init__(self, config: EnvConfig, agent_configs: Dict[AgentName, Any]):
         self._config = config
         self._agent_configs = agent_configs
@@ -91,8 +91,8 @@ class HierarchicalEnv(MultiAgentEnv, ABC, Generic[EnvConfig, EnvState]):
     def env_step(self, state: EnvState, action: Action) -> EnvState:
         pass
 
-    def common_info(self, state: EnvState) -> Dict[str, Any]:
-        return {}
+    def common_info(self, state: EnvState) -> EnvCommonInfo:
+        return {}  # type: ignore
 
     @property
     def observation_space(self) -> Space:
